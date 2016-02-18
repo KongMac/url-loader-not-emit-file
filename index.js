@@ -1,0 +1,21 @@
+/**
+ * Created by kongmac on 16/2/18.
+ */
+var loaderUtils = require("loader-utils");
+var mime = require("mime");
+module.exports = function(content) {
+    this.cacheable && this.cacheable();
+    var query = loaderUtils.parseQuery(this.query);
+    var limit = (this.options && this.options.url && this.options.url.dataUrlLimit) || 0;
+    if(query.limit) {
+        limit = parseInt(query.limit, 10);
+    }
+    var mimetype = query.mimetype || query.minetype || mime.lookup(this.resourcePath);
+    if(limit <= 0 || content.length < limit) {
+        return "module.exports = " + JSON.stringify("data:" + (mimetype ? mimetype + ";" : "") + "base64," + content.toString("base64"));
+    } else {
+        var fileLoaderNotEmitFile = require("file-loader-not-emit-file");
+        return fileLoaderNotEmitFile.call(this, content);
+    }
+}
+module.exports.raw = true;
